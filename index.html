@@ -277,8 +277,9 @@ tr:hover td{background:var(--cream);}
 .bn-item.active .bn-label{color:var(--sage2);}
 .bn-icon{font-size:19px;line-height:1;}
 
-/* Misc */
-.hidden{display:none!important;}
+/* Hide on mobile */
+.hide-mobile{display:none;}
+@media(min-width:769px){.hide-mobile{display:table-cell;}}
 .empty{text-align:center;padding:40px;color:var(--brown3);}
 @keyframes fadeUp{from{opacity:0;transform:translateY(16px);}to{opacity:1;transform:translateY(0);}}
 
@@ -441,9 +442,9 @@ tr:hover td{background:var(--cream);}
   <div class="kpi-row" id="kpi-resumen"></div>
   <div class="card-grid">
     <div class="card">
-      <div class="card-title">Top 10 productos por neto</div>
+      <div class="card-title">Top 10 productos por utilidad</div>
       <div class="tbl-wrap">
-        <table><thead><tr><th>#</th><th>Producto</th><th>Proveedor</th><th>Utilidad</th><th>Margen</th><th>ABC</th></tr></thead>
+        <table><thead><tr><th>#</th><th>Producto</th><th class="hide-mobile">Prov.</th><th>Utilidad</th><th>Mg%</th><th class="hide-mobile">ABC</th></tr></thead>
         <tbody id="top10-body"></tbody></table>
       </div>
     </div>
@@ -721,14 +722,18 @@ tr:hover td{background:var(--cream);}
 
 <!-- Bottom nav (mobile only) -->
 <nav class="bottom-nav">
-  <div class="bn-item active" id="bn-resumen" onclick="goTo('resumen')"><span class="bn-icon">🏠</span><span class="bn-label">Inicio</span></div>
-  <div class="bn-item" id="bn-pareto" onclick="goTo('pareto')"><span class="bn-icon">📊</span><span class="bn-label">Pareto</span></div>
-  <div class="bn-item" id="bn-semaforo" onclick="goTo('semaforo')"><span class="bn-icon">🚦</span><span class="bn-label">Semáforo</span></div>
-  <div class="bn-item" id="bn-potencial" onclick="goTo('potencial')"><span class="bn-icon">💡</span><span class="bn-label">Potencial</span></div>
-  <div class="bn-item" id="bn-sow" onclick="goTo('sow')"><span class="bn-icon">🥧</span><span class="bn-label">Wallet</span></div>
-  <div class="bn-item" id="bn-proveedor" onclick="goTo('proveedor')"><span class="bn-icon">📦</span><span class="bn-label">Prov.</span></div>
-  <div class="bn-item" id="bn-movimiento" onclick="goTo('movimiento')"><span class="bn-icon">📉</span><span class="bn-label">Movim.</span></div>
-  <div class="bn-item" id="bn-importar" onclick="goTo('importar')"><span class="bn-icon">📥</span><span class="bn-label">Importar</span></div>
+  <div class="bn-item active" onclick="goTo('resumen')"><span class="bn-icon">🏠</span><span class="bn-label">Inicio</span></div>
+  <div class="bn-item" onclick="goTo('pareto')"><span class="bn-icon">📊</span><span class="bn-label">Pareto</span></div>
+  <div class="bn-item" onclick="goTo('semaforo')"><span class="bn-icon">🚦</span><span class="bn-label">Semáforo</span></div>
+  <div class="bn-item" onclick="goTo('proveedor')"><span class="bn-icon">📦</span><span class="bn-label">Prov.</span></div>
+  <div class="bn-item" onclick="goTo('rotacion')"><span class="bn-icon">🔄</span><span class="bn-label">Rotación</span></div>
+  <div class="bn-item" onclick="goTo('mixprecio')"><span class="bn-icon">💰</span><span class="bn-label">Mix</span></div>
+  <div class="bn-item" onclick="goTo('oportunidad')"><span class="bn-icon">🎯</span><span class="bn-label">Oport.</span></div>
+  <div class="bn-item" onclick="goTo('ticket')"><span class="bn-icon">🧾</span><span class="bn-label">Ticket</span></div>
+  <div class="bn-item" onclick="goTo('movimiento')"><span class="bn-icon">📉</span><span class="bn-label">Movim.</span></div>
+  <div class="bn-item" onclick="goTo('evolucion')"><span class="bn-icon">📈</span><span class="bn-label">Evol.</span></div>
+  <div class="bn-item" onclick="goTo('novedades')"><span class="bn-icon">🆕</span><span class="bn-label">Novedades</span></div>
+  <div class="bn-item" onclick="goTo('importar')"><span class="bn-icon">📥</span><span class="bn-label">Importar</span></div>
 </nav>
 
 <div class="modal-ov" id="modal-ov">
@@ -778,19 +783,21 @@ let curProv=null;
 function goTo(page){
   document.querySelectorAll('main section').forEach(s=>s.classList.add('hidden'));
   const el=document.getElementById('page-'+page);
+  if(!el) return;
   el.classList.remove('hidden');
   el.classList.remove('fade-up');
   void el.offsetWidth;
   el.classList.add('fade-up');
-  // sync sidebar
-  document.querySelectorAll('.nav-item').forEach(el=>el.classList.remove('active'));
-  const pages=['resumen','pareto','semaforo','potencial','sow','proveedor','importar'];
-  const idx=pages.indexOf(page);
-  if(idx>=0) document.querySelectorAll('.nav-item')[idx].classList.add('active');
+  window.scrollTo(0,0);
+  // sync sidebar nav items by data-page or onclick match
+  document.querySelectorAll('.nav-item').forEach(el=>{
+    const oc=el.getAttribute('onclick')||'';
+    el.classList.toggle('active', oc.includes("'"+page+"'"));
+  });
   // sync bottom nav
-  pages.forEach(p=>{
-    const bn=document.getElementById('bn-'+p);
-    if(bn) bn.classList.toggle('active',p===page);
+  document.querySelectorAll('.bn-item').forEach(el=>{
+    const oc=el.getAttribute('onclick')||'';
+    el.classList.toggle('active', oc.includes("'"+page+"'"));
   });
   const renders={resumen:renderResumen,pareto:renderPareto,semaforo:renderSemaforo,potencial:renderPotencial,sow:renderSOW,proveedor:renderProveedor,movimiento:renderMovimiento,evolucion:renderEvolucion,precios:renderPrecios,novedades:renderNovedades,rotacion:renderRotacion,mixprecio:renderMixPrecio,oportunidad:renderOportunidad,ticket:renderTicket};
   if(renders[page]) renders[page]();
@@ -837,11 +844,11 @@ function renderResumen(){
     const w=Math.round(p.utilidad/maxUtil*70);
     return `<tr>
       <td class="rank">${i+1}</td>
-      <td style="max-width:200px;overflow:hidden;text-overflow:ellipsis" title="${p.descripcion}">${p.descripcion.substring(0,30)}</td>
-      <td style="font-size:11px;color:var(--brown3)">${p.proveedor.split(' ')[0]}</td>
+      <td style="max-width:160px;overflow:hidden;text-overflow:ellipsis;font-size:12px" title="${p.descripcion}">${p.descripcion.substring(0,28)}</td>
+      <td class="hide-mobile" style="font-size:11px;color:var(--brown3)">${p.proveedor.split(' ')[0]}</td>
       <td><div class="hbar"><div class="hbar-fill" style="width:${w}px;background:var(--sage3)"></div>${fmt(p.utilidad)}</div></td>
       <td style="color:${mc(m)};font-weight:600">${m}%</td>
-      <td>${abcTag(abcRank(i,sorted.length))}</td>
+      <td class="hide-mobile">${abcTag(abcRank(i,sorted.length))}</td>
     </tr>`;
   }).join('');
   
